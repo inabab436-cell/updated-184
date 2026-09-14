@@ -21,6 +21,7 @@ import {
   getMerchantAgentSettings, setMerchantAgentGloballyDisabled,
   type ConversationRow,
 } from "@/lib/conversations.functions";
+import { getEarningsSummary } from "@/lib/orders.functions";
 
 
 
@@ -30,6 +31,10 @@ export const Route = createFileRoute("/dashboard")({
     meta: [
       { title: "لوحة التحكم · cupai" },
       { name: "description", content: "أدر منتجاتك، سياساتك، شحنك، وبيانات تواصلك." },
+      { property: "og:title", content: "لوحة التحكم · cupai" },
+      { property: "og:description", content: "ملخص الطلبات والعملاء والأرباح وإدارة المتجر." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DashboardPage,
@@ -38,21 +43,26 @@ export const Route = createFileRoute("/dashboard")({
 type Tile = {
   to: string;
   label: string;
+  description: string;
   icon: React.ReactNode;
   tone: string;
 };
 
 const TILES: Tile[] = [
-  { to: "/published", label: "الموقع", icon: <Globe className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/products", label: "المخزون", icon: <Package className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/offers", label: "العروض", icon: <BadgePercent className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
-  { to: "/orders", label: "الطلبات", icon: <ShoppingBag className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/earnings", label: "الأرباح", icon: <TrendingUp className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
-  { to: "/settings/payment-methods", label: "طرق الدفع", icon: <CreditCard className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/shipping", label: "الشحن", icon: <Truck className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
-  { to: "/policies", label: "السياسات", icon: <ScrollText className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/contacts", label: "التواصل", icon: <PhoneCall className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/orders", label: "الطلبات", description: "متابعة وتجهيز", icon: <ShoppingBag className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/products", label: "المخزون", description: "المنتجات والكميات", icon: <Package className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/published", label: "الموقع", description: "واجهة متجرك", icon: <Globe className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/offers", label: "العروض", description: "الخصومات الحالية", icon: <BadgePercent className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/earnings", label: "الأرباح", description: "ملخص التحصيل", icon: <TrendingUp className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/shipping", label: "الشحن", description: "المناطق والتكلفة", icon: <Truck className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/settings/payment-methods", label: "الدفع", description: "طرق استلام المال", icon: <CreditCard className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/policies", label: "السياسات", description: "شروط متجرك", icon: <ScrollText className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/contacts", label: "التواصل", description: "بيانات الاتصال", icon: <PhoneCall className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
 ];
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 2 }).format(value);
+}
 
 function DashboardPage() {
   const convos = useQuery({
