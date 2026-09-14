@@ -209,13 +209,18 @@
    Nothing here leaks outside an element carrying `.hub`.
    ============================================================ */
 .hub {
-  --hub-ink: oklch(0.22 0.015 255);
-  --hub-blue: oklch(0.59 0.2 255);
-  --hub-blue-soft: oklch(0.95 0.025 250);
-  --hub-red: oklch(0.68 0.14 25);
-  --hub-red-soft: oklch(0.96 0.025 20);
-  --hub-gray: oklch(0.55 0.015 255);
-  --hub-canvas: oklch(0.965 0.006 255);
+  /* Deep ocean palette: #0c2340 · #1a4a6e · #2d8a9e · #5cbdb9 */
+  --hub-ink: oklch(0.25 0.062 251);
+  --hub-navy: oklch(0.25 0.062 251);
+  --hub-navy-2: oklch(0.38 0.071 244);
+  --hub-blue: oklch(0.58 0.083 217);
+  --hub-blue-soft: oklch(0.95 0.021 215);
+  --hub-teal: oklch(0.74 0.075 186);
+  --hub-teal-soft: oklch(0.96 0.021 186);
+  --hub-red: oklch(0.62 0.19 25);
+  --hub-red-soft: oklch(0.96 0.03 20);
+  --hub-gray: oklch(0.55 0.022 245);
+  --hub-canvas: oklch(0.97 0.005 240);
   --hub-paper: oklch(1 0 0);
 
   --background: var(--hub-canvas);
@@ -226,28 +231,28 @@
   --popover-foreground: var(--hub-ink);
   --primary: var(--hub-blue);
   --primary-foreground: var(--hub-paper);
-  --secondary: var(--hub-red-soft);
-  --secondary-foreground: oklch(0.48 0.16 25);
-  --muted: oklch(0.94 0.008 255);
+  --secondary: var(--hub-teal-soft);
+  --secondary-foreground: oklch(0.42 0.07 200);
+  --muted: oklch(0.95 0.006 240);
   --muted-foreground: var(--hub-gray);
   --accent: var(--hub-blue-soft);
-  --accent-foreground: oklch(0.43 0.16 255);
+  --accent-foreground: oklch(0.40 0.07 225);
   --destructive: var(--hub-red);
   --destructive-foreground: var(--hub-paper);
-  --border: oklch(0.89 0.008 255);
-  --input: oklch(0.89 0.008 255);
+  --border: oklch(0.90 0.008 240);
+  --input: oklch(0.90 0.008 240);
   --ring: var(--hub-blue);
-  --radius: 1rem;
+  --radius: 1.25rem;
 
-  --gradient-brand: linear-gradient(145deg, oklch(0.66 0.17 245) 0%, var(--hub-blue) 100%);
+  --gradient-brand: linear-gradient(160deg, var(--hub-navy) 0%, var(--hub-navy-2) 100%);
   --gradient-surface: none;
-  --shadow-card: 0 1px 2px oklch(0.22 0.015 255 / 0.04), 0 8px 24px -18px oklch(0.22 0.015 255 / 0.16);
-  --shadow-elegant: 0 1px 2px oklch(0.22 0.015 255 / 0.05), 0 16px 40px -28px oklch(0.22 0.015 255 / 0.24);
-  --shadow-glow: 0 18px 48px -24px oklch(0.59 0.2 255 / 0.38);
+  --shadow-card: 0 1px 2px oklch(0.25 0.062 251 / 0.04), 0 8px 24px -18px oklch(0.25 0.062 251 / 0.18);
+  --shadow-elegant: 0 1px 2px oklch(0.25 0.062 251 / 0.05), 0 16px 40px -28px oklch(0.25 0.062 251 / 0.26);
+  --shadow-glow: 0 18px 48px -24px oklch(0.58 0.083 217 / 0.4);
 
   background-color: var(--hub-canvas);
   color: var(--foreground);
-  font-family: "Tajawal", "Cairo", "DM Sans", var(--font-sans);
+  font-family: "Tajawal", "Cairo", "Manrope", var(--font-sans);
   letter-spacing: 0;
 }
 
@@ -255,13 +260,38 @@
 .hub h2,
 .hub h3,
 .hub .hub-display {
-  font-family: "Tajawal", "Cairo", "Space Grotesk", var(--font-sans);
+  font-family: "Tajawal", "Cairo", "Sora", var(--font-sans);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 
 .hub :where([lang="en"], .hub-latin) {
-  font-family: "Space Grotesk", "DM Sans", sans-serif;
+  font-family: "Sora", "Manrope", sans-serif;
+}
+
+/* Dark ocean header used at the top of hub pages */
+@utility hub-hero {
+  background-image: linear-gradient(to bottom, var(--hub-navy), var(--hub-navy-2));
+  color: oklch(1 0 0);
+}
+
+/* Rounded light sheet that overlaps the dark header */
+@utility hub-sheet-top {
+  border-start-start-radius: 2rem;
+  border-start-end-radius: 2rem;
+  background-color: var(--hub-canvas);
+}
+
+/* Square icon tile used in the quick-access grid */
+@utility hub-tile {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 1.25rem;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
 }
 
 /* Flat grouped background, matching a native Apple conversation surface. */

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Package, ScrollText, Truck, PhoneCall, Globe, ArrowLeft,
   Bell, CreditCard, AlertTriangle, ShoppingBag, UserRound, Check, HelpCircle,
-  MessagesSquare, Clock4, Moon, BadgePercent,
+  MessagesSquare, Clock4, BadgePercent,
   ShieldAlert, MailCheck, TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -35,49 +35,23 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-type NavItem = {
+type Tile = {
   to: string;
-  badgeKey?: "awaiting_payment";
-  title: string;
-  desc: string;
+  label: string;
   icon: React.ReactNode;
+  tone: string;
 };
 
-type NavGroup = { label: string; items: NavItem[] };
-
-const GROUPS: NavGroup[] = [
-  {
-    label: "المتجر",
-    items: [
-      { to: "/published", title: "الموقع", desc: "ما يراه العميل على موقعك.", icon: <Globe className="h-5 w-5" /> },
-      { to: "/products", title: "المخزون", desc: "المنتجات والمقاسات والكميات.", icon: <Package className="h-5 w-5" /> },
-      { to: "/offers", title: "العروض", desc: "خصومات بمدة محددة.", icon: <BadgePercent className="h-5 w-5" /> },
-    ],
-  },
-  {
-    label: "المبيعات",
-    items: [
-      { to: "/orders", title: "الطلبات", desc: "متابعة الشحن والتسليم.", icon: <ShoppingBag className="h-5 w-5" /> },
-      { to: "/earnings", title: "الأرباح", desc: "أداء متجرك بالأرقام.", icon: <TrendingUp className="h-5 w-5" /> },
-      { to: "/awaiting-payment", title: "بانتظار الدفع", desc: "طلبات تنتظر تأكيدك.", icon: <Moon className="h-5 w-5" />, badgeKey: "awaiting_payment" },
-      { to: "/settings/payment-methods", title: "طرق الدفع", desc: "الخيارات التي تقبلها.", icon: <CreditCard className="h-5 w-5" /> },
-    ],
-  },
-  {
-    label: "بيانات المتجر",
-    items: [
-      { to: "/policies", title: "السياسات", desc: "الإرجاع والشروط والخصوصية.", icon: <ScrollText className="h-5 w-5" /> },
-      { to: "/shipping", title: "الشحن", desc: "الأسعار حسب المنطقة.", icon: <Truck className="h-5 w-5" /> },
-      { to: "/contacts", title: "التواصل", desc: "الهاتف والبريد والعناوين.", icon: <PhoneCall className="h-5 w-5" /> },
-    ],
-  },
-  {
-    label: "الوكيل الذكي",
-    items: [
-      { to: "/missing-info", title: "معلومات ناقصة", desc: "أسئلة لم يجد لها إجابة.", icon: <HelpCircle className="h-5 w-5" /> },
-      { to: "/settings/notifications", title: "الإشعارات", desc: "رسائل البريد التي تصلك.", icon: <Bell className="h-5 w-5" /> },
-    ],
-  },
+const TILES: Tile[] = [
+  { to: "/published", label: "الموقع", icon: <Globe className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/products", label: "المخزون", icon: <Package className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/offers", label: "العروض", icon: <BadgePercent className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/orders", label: "الطلبات", icon: <ShoppingBag className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/earnings", label: "الأرباح", icon: <TrendingUp className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/settings/payment-methods", label: "طرق الدفع", icon: <CreditCard className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/shipping", label: "الشحن", icon: <Truck className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/policies", label: "السياسات", icon: <ScrollText className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/contacts", label: "التواصل", icon: <PhoneCall className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
 ];
 
 function DashboardPage() {
@@ -86,74 +60,95 @@ function DashboardPage() {
     queryFn: () => listConversations(),
     refetchInterval: 15000,
   });
+  const notifs = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => listNotifications(),
+    refetchInterval: 15000,
+  });
+
   const awaitingCount = (convos.data ?? []).filter((c) => c.awaiting_payment).length;
+  const activeCount = (convos.data ?? []).filter((c) => {
+    const t = new Date(c.last_message_at ?? c.created_at).getTime();
+    return Number.isFinite(t) && Date.now() - t <= ACTIVE_NOW_THRESHOLD_MS;
+  }).length;
+  const unread = (notifs.data ?? []).filter((n) => !n.is_read).length;
 
   return (
     <div dir="rtl" className="hub min-h-screen pb-24">
-      <header className="hub-bar">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex min-w-0 items-center gap-2">
-            <img src={logo.url} alt="cupai" className="h-8 w-8 shrink-0 rounded-xl" />
-            <span className="hub-display truncate text-sm font-bold text-primary">cupai</span>
+      <header className="hub-hero px-5 pb-10 pt-6">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
+          <Link to="/" className="flex min-w-0 items-center gap-3">
+            <img src={logo.url} alt="cupai" className="h-11 w-11 shrink-0 rounded-2xl" />
+            <span className="min-w-0">
+              <span className="block truncate text-lg font-bold">متجرك</span>
+              <span className="hub-latin block truncate text-xs opacity-70">cupai</span>
+            </span>
           </Link>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/">
-              <ArrowLeft className="ml-1 h-4 w-4" />
-              الرئيسية
-            </Link>
-          </Button>
+          <Link
+            to="/settings/notifications"
+            className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10"
+            aria-label="الإشعارات"
+          >
+            <Bell className="h-5 w-5" />
+            {unread > 0 && (
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
+            )}
+          </Link>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pt-6">
-        <section>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-            لوحة التحكم
+      <div className="hub-sheet-top -mt-6 pt-7">
+        <div className="mx-auto w-full max-w-3xl space-y-7 px-5 pb-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/awaiting-payment" className="hub-card p-4">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+                <Clock4 className="h-5 w-5" />
+              </span>
+              <span className="mt-3 block text-xs text-muted-foreground">بانتظار الدفع</span>
+              <span className="block text-xl font-bold">{awaitingCount} طلب</span>
+            </Link>
+            <Link to="/missing-info" className="hub-card p-4">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
+                <MessagesSquare className="h-5 w-5" />
+              </span>
+              <span className="mt-3 block text-xs text-muted-foreground">محادثات نشطة</span>
+              <span className="block text-xl font-bold">{activeCount}</span>
+            </Link>
           </div>
-          <h1 className="mt-1.5 text-[26px] font-bold leading-tight sm:text-3xl">
-            أهلاً بك في متجرك
-          </h1>
-          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-            كل شيء من مكان واحد.
-          </p>
-        </section>
 
-        {GROUPS.map((g) => (
-          <section key={g.label} className="space-y-2.5">
-            <h2 className="px-1 text-[12px] font-bold text-muted-foreground">{g.label}</h2>
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {g.items.map((n) => (
-                <Link
-                  key={n.to}
-                  to={n.to as never}
-                  className="hub-card flex items-center gap-3 p-4 transition-colors active:bg-accent"
-                >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
-                    {n.icon}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2 text-[15px] font-bold">
-                      <span className="truncate">{n.title}</span>
-                      {n.badgeKey === "awaiting_payment" && awaitingCount > 0 && (
-                        <span className="hub-chip bg-secondary text-secondary-foreground">
-                          {awaitingCount}
-                        </span>
-                      )}
-                    </span>
-                    <span className="mt-0.5 block truncate text-[12px] text-muted-foreground">
-                      {n.desc}
-                    </span>
-                  </span>
-                  <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <section className="space-y-3">
+            <h2 className="px-1 text-sm font-bold">إدارة المتجر</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {TILES.map((t) => (
+                <Link key={t.to} to={t.to as never} className="flex flex-col items-center gap-2">
+                  <span className={`hub-tile ${t.tone}`}>{t.icon}</span>
+                  <span className="text-xs font-semibold">{t.label}</span>
                 </Link>
               ))}
             </div>
           </section>
-        ))}
 
-        <BrandAgentSettings />
-        <ConversationsSection />
-        <NotificationsSection />
+          <section className="space-y-2.5">
+            <Link to="/missing-info" className="hub-card flex items-center gap-3 p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
+                <HelpCircle className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1 text-sm font-semibold">معلومات ناقصة</span>
+              <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Link>
+            <Link to="/settings/notifications" className="hub-card flex items-center gap-3 p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
+                <MailCheck className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1 text-sm font-semibold">إشعارات البريد</span>
+              <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Link>
+          </section>
+
+          <BrandAgentSettings />
+          <ConversationsSection />
+          <NotificationsSection />
+        </div>
       </div>
 
       <HubTabBar />
