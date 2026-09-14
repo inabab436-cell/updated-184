@@ -433,12 +433,11 @@ function DescriptionStatusIndicator({ product }: { product: WebsiteProductDTO })
   // state instead of the misleading "generating" / "failed" labels.
   const hasImages = product.images.length > 0;
   const s = hasImages ? product.description_status : "no_images";
+  if (s === "ready") return null;
   const label =
     s === "no_images"
       ? "وصف الصور: لا توجد صور بعد"
-      : s === "ready"
-        ? "وصف الصور: جاهز"
-        : s === "failed"
+      : s === "failed"
           ? "وصف الصور: فشل"
           : "وصف الصور: قيد التوليد";
   const tone =

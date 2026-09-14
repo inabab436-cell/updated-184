@@ -114,7 +114,7 @@ function DashboardPage() {
         <div className="mx-auto w-full max-w-3xl space-y-7 px-5 pb-4">
           <section className="space-y-3">
             <h1 className="px-1 text-lg font-bold">نظرة سريعة</h1>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <Link to="/orders" className="hub-card flex min-h-28 flex-col justify-between p-4">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-secondary-foreground">
                   <ShoppingBag className="h-5 w-5" />
@@ -152,7 +152,7 @@ function DashboardPage() {
 
           <section className="space-y-3">
             <h2 className="px-1 text-sm font-bold">إدارة المتجر</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {TILES.map((t) => (
                 <Link key={t.to} to={t.to as never} className="hub-card flex min-h-28 flex-col items-center justify-center gap-2.5 p-2 text-center transition-transform active:scale-[0.97]">
                   <span className={`grid h-13 w-13 shrink-0 place-items-center rounded-2xl shadow-sm ${t.tone}`}>{t.icon}</span>
