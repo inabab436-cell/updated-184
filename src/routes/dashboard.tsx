@@ -146,7 +146,7 @@ function DashboardPage() {
                     {earnings.isLoading ? "—" : formatMoney(pendingProfit)}
                     {earnings.data?.currency && <small className="me-1 text-xs font-medium text-muted-foreground">{earnings.data.currency}</small>}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground">بعد خصم تكلفة الشحن</span>
+                  <span className="block text-[11px] text-muted-foreground">بعد خصم التكاليف المسجلة</span>
                 </span>
                 <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
               </Link>
