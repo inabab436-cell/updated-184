@@ -441,13 +441,11 @@ function DescriptionStatusIndicator({ product }: { product: WebsiteProductDTO })
           ? "وصف الصور: فشل"
           : "وصف الصور: قيد التوليد";
   const tone =
-    s === "ready"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
-      : s === "failed"
-        ? "border-destructive/30 bg-destructive/10 text-destructive"
-        : s === "no_images"
-          ? "border-amber-500/30 bg-amber-500/10 text-amber-600"
-          : "border-border/60 bg-muted text-muted-foreground";
+    s === "failed"
+      ? "border-destructive/30 bg-destructive/10 text-destructive"
+      : s === "no_images"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-600"
+        : "border-border/60 bg-muted text-muted-foreground";
 
   return (
     <span className="inline-flex items-center gap-1">
