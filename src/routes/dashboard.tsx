@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { HubTabBar } from "@/components/hub/hub-shell";
 import { Switch } from "@/components/ui/switch";
 import logo from "@/assets/cupai-logo.png.asset.json";
 import {
