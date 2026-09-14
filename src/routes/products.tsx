@@ -2,7 +2,7 @@ import { Fragment, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Package, ChevronDown, ChevronUp, Sparkles, Plus, Trash2, Loader2, ImageOff, ImagePlus, X, Pencil, Layers, TrendingUp, Boxes, Wallet } from "lucide-react";
+import { Package, ChevronDown, ChevronUp, Sparkles, Plus, Trash2, Loader2, ImageOff, ImagePlus, X, Pencil, Layers, TrendingUp, Boxes, Wallet, PackagePlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
   type WebsiteProductDTO,
   type ProductSalesDTO,
 } from "@/lib/website-products.functions";
-import { createManualProduct, type ManualVariantInput } from "@/lib/inventory.functions";
+import { addVariantStock, createManualProduct, type ManualVariantInput } from "@/lib/inventory.functions";
 import { requireQuantity } from "@/lib/variant-quantity";
 
 
@@ -100,6 +100,7 @@ function ProductsPage() {
   const [addOpen, setAddOpen] = useState(false);
   // Keep only the id: the dialog always reads the latest saved product row.
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [quickStock, setQuickStock] = useState<{ product: WebsiteProductDTO; variantIndex: number } | null>(null);
   const pubMut = useMutation({
     mutationFn: (v: { id: string; is_published: boolean }) =>
       setProductPublished({ data: v }),
@@ -152,6 +153,15 @@ function ProductsPage() {
         onSaved={() => {
           setEditingId(null);
           toast.success("تم حفظ التعديلات.");
+          qc.invalidateQueries({ queryKey: ["website-products"] });
+        }}
+      />
+
+      <QuickStockDialog
+        target={quickStock}
+        onOpenChange={(open) => { if (!open) setQuickStock(null); }}
+        onSaved={() => {
+          setQuickStock(null);
           qc.invalidateQueries({ queryKey: ["website-products"] });
         }}
       />
@@ -362,6 +372,12 @@ function ProductsPage() {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1">
                               <Button
+                                size="icon" variant="secondary" title="تزويد المخزون"
+                                onClick={() => setQuickStock({ product: p, variantIndex: 0 })}
+                              >
+                                <PackagePlus className="h-4 w-4" />
+                              </Button>
+                              <Button
                                 size="icon" variant="outline" title="تعديل"
                                 onClick={() => setEditingId(p.id)}
                               >
@@ -383,7 +399,7 @@ function ProductsPage() {
                         {isOpen && (
                           <tr className="bg-muted/20">
                             <td colSpan={10} className="p-0">
-                              <VariantSubTable product={p} sales={sales} />
+                              <VariantSubTable product={p} sales={sales} onAddStock={(variantIndex) => setQuickStock({ product: p, variantIndex })} />
                             </td>
                           </tr>
                         )}
@@ -465,9 +481,11 @@ function vKey(color: unknown, size: unknown) {
 function VariantSubTable({
   product,
   sales,
+  onAddStock,
 }: {
   product: WebsiteProductDTO;
   sales: ProductSalesDTO | undefined;
+  onAddStock: (variantIndex: number) => void;
 }) {
   const byColorId = new Map<string, typeof product.images>();
   const bySizeId = new Map<string, typeof product.images>();
@@ -522,12 +540,13 @@ function VariantSubTable({
               <th className="px-3 py-2">المُباع</th>
               <th className="px-3 py-2">المتبقي</th>
               <th className="px-3 py-2">الصور</th>
+              <th className="px-3 py-2">إضافة</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-4 text-center text-muted-foreground">
+                <td colSpan={7} className="p-4 text-center text-muted-foreground">
                   لا توجد متغيّرات مسجّلة لهذا المنتج.
                 </td>
               </tr>
@@ -577,6 +596,11 @@ function VariantSubTable({
                   <td className="px-3 py-2">
                     <ImageStrip imgs={r.imgs} label={r.label ?? undefined} />
                   </td>
+                  <td className="px-3 py-2">
+                    <Button size="sm" variant="secondary" className="gap-1" onClick={() => onAddStock(Number(r.key.slice(2)))}>
+                      <Plus className="h-3.5 w-3.5" /> كمية
+                    </Button>
+                  </td>
                 </tr>
               );
             })}
@@ -584,6 +608,85 @@ function VariantSubTable({
         </table>
       </div>
     </div>
+  );
+}
+
+function QuickStockDialog({
+  target,
+  onOpenChange,
+  onSaved,
+}: {
+  target: { product: WebsiteProductDTO; variantIndex: number } | null;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [variantIndex, setVariantIndex] = useState(0);
+  const [amount, setAmount] = useState("1");
+  const product = target?.product;
+  const variants = product?.variants ?? [];
+  const chosen = variants[variantIndex];
+  const add = useMutation({
+    mutationFn: () => {
+      if (!product) throw new Error("المنتج غير موجود.");
+      return addVariantStock({
+        data: {
+          productId: product.id,
+          color: chosen?.color ?? null,
+          size: chosen?.size ?? null,
+          amount: Number(amount),
+        },
+      });
+    },
+    onSuccess: (result) => {
+      toast.success(`تم تحديث المخزون إلى ${result.quantity}.`);
+      onSaved();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "تعذر تحديث المخزون."),
+  });
+
+  const open = target != null;
+  const initialIndex = target?.variantIndex ?? 0;
+  if (open && variantIndex !== initialIndex && amount === "") setVariantIndex(initialIndex);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent dir="rtl" className="hub max-w-sm">
+        <DialogHeader>
+          <DialogTitle>تزويد مخزون {product?.name ?? "المنتج"}</DialogTitle>
+          <DialogDescription>اختر المتغير والكمية التي تريد إضافتها.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          {variants.length > 1 && (
+            <label className="block space-y-1.5 text-sm font-semibold">
+              <span>اللون أو المقاس</span>
+              <select value={variantIndex} onChange={(e) => setVariantIndex(Number(e.target.value))} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm">
+                {variants.map((variant, index) => (
+                  <option key={`${variant.color ?? ""}-${variant.size ?? ""}-${index}`} value={index}>
+                    {[variant.color, variant.size].filter(Boolean).join(" · ") || "المنتج الأساسي"} — المتاح {variant.quantity ?? 0}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label className="block space-y-1.5 text-sm font-semibold">
+            <span>الكمية المضافة</span>
+            <Input inputMode="numeric" type="number" min={1} max={100000} value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </label>
+          <div className="grid grid-cols-4 gap-2">
+            {[1, 5, 10, 20].map((value) => (
+              <Button key={value} type="button" variant="outline" size="sm" onClick={() => setAmount(String(value))}>+{value}</Button>
+            ))}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
+          <Button onClick={() => add.mutate()} disabled={add.isPending || Number(amount) < 1}>
+            {add.isPending && <Loader2 className="ml-1 h-4 w-4 animate-spin" />}
+            إضافة للمخزون
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
