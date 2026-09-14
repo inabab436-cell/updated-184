@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -625,6 +625,12 @@ function QuickStockDialog({
   const product = target?.product;
   const variants = product?.variants ?? [];
   const chosen = variants[variantIndex];
+  useEffect(() => {
+    if (target) {
+      setVariantIndex(target.variantIndex);
+      setAmount("1");
+    }
+  }, [target]);
   const add = useMutation({
     mutationFn: () => {
       if (!product) throw new Error("المنتج غير موجود.");
@@ -645,9 +651,6 @@ function QuickStockDialog({
   });
 
   const open = target != null;
-  const initialIndex = target?.variantIndex ?? 0;
-  if (open && variantIndex !== initialIndex && amount === "") setVariantIndex(initialIndex);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="hub max-w-sm">

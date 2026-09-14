@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Package, Clock, CircleCheck } from "lucide-react";
@@ -50,7 +51,7 @@ function EarningsPage() {
         <HubCard className="p-8 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-destructive/10 text-destructive">
             <TrendingUp className="h-6 w-6" />
-          </div>
+          </HubCard>
           <h2 className="mt-4 text-lg font-bold">تعذر تحميل البيانات</h2>
           <p className="mx-auto mt-1 max-w-sm text-[13px] text-muted-foreground">
             {(q.error as Error)?.message || "حدث خطأ أثناء جلب نظرتك المالية."}
@@ -85,14 +86,14 @@ function MetricRow({
   label,
   value,
   currency,
-  subtext,
+  detail,
   tone,
 }: {
   icon: ReactNode;
   label: string;
   value: string;
   currency?: string;
-  subtext: string;
+  detail: string;
   tone: "mint" | "gold" | "sky";
 }) {
   const tones = {
