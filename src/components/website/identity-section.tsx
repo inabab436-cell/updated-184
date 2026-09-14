@@ -146,30 +146,6 @@ export function IdentitySection({ state }: { state: SiteState | undefined }) {
             />
           </div>
 
-          <div>
-            <Label className="flex items-center gap-1.5">
-              <Palette className="h-3.5 w-3.5" /> Store color palette
-            </Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Object.entries(THEMES).map(([key, t]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => { setThemeKey(key); commit({ theme_key: key }); }}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition ${
-                    themeKey === key ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/50"
-                  }`}
-                >
-                  <span className="flex gap-1">
-                    <span className="h-4 w-4 rounded-full" style={{ background: t.primary }} />
-                    <span className="h-4 w-4 rounded-full" style={{ background: t.secondary }} />
-                    <span className="h-4 w-4 rounded-full" style={{ background: t.accent }} />
-                  </span>
-                  {t.name}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>
