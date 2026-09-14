@@ -21,6 +21,7 @@ import {
   getMerchantAgentSettings, setMerchantAgentGloballyDisabled,
   type ConversationRow,
 } from "@/lib/conversations.functions";
+import { getEarningsSummary } from "@/lib/orders.functions";
 
 
 
@@ -30,6 +31,10 @@ export const Route = createFileRoute("/dashboard")({
     meta: [
       { title: "لوحة التحكم · cupai" },
       { name: "description", content: "أدر منتجاتك، سياساتك، شحنك، وبيانات تواصلك." },
+      { property: "og:title", content: "لوحة التحكم · cupai" },
+      { property: "og:description", content: "ملخص الطلبات والعملاء والأرباح وإدارة المتجر." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DashboardPage,
@@ -38,21 +43,26 @@ export const Route = createFileRoute("/dashboard")({
 type Tile = {
   to: string;
   label: string;
+  description: string;
   icon: React.ReactNode;
   tone: string;
 };
 
 const TILES: Tile[] = [
-  { to: "/published", label: "الموقع", icon: <Globe className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/products", label: "المخزون", icon: <Package className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/offers", label: "العروض", icon: <BadgePercent className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
-  { to: "/orders", label: "الطلبات", icon: <ShoppingBag className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/earnings", label: "الأرباح", icon: <TrendingUp className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
-  { to: "/settings/payment-methods", label: "طرق الدفع", icon: <CreditCard className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/shipping", label: "الشحن", icon: <Truck className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
-  { to: "/policies", label: "السياسات", icon: <ScrollText className="h-7 w-7" />, tone: "bg-accent text-accent-foreground" },
-  { to: "/contacts", label: "التواصل", icon: <PhoneCall className="h-7 w-7" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/orders", label: "الطلبات", description: "متابعة وتجهيز", icon: <ShoppingBag className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/products", label: "المخزون", description: "المنتجات والكميات", icon: <Package className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/published", label: "الموقع", description: "واجهة متجرك", icon: <Globe className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/offers", label: "العروض", description: "الخصومات الحالية", icon: <BadgePercent className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/earnings", label: "الأرباح", description: "ملخص التحصيل", icon: <TrendingUp className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/shipping", label: "الشحن", description: "المناطق والتكلفة", icon: <Truck className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/settings/payment-methods", label: "الدفع", description: "طرق استلام المال", icon: <CreditCard className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
+  { to: "/policies", label: "السياسات", description: "شروط متجرك", icon: <ScrollText className="h-5 w-5" />, tone: "bg-secondary text-secondary-foreground" },
+  { to: "/contacts", label: "التواصل", description: "بيانات الاتصال", icon: <PhoneCall className="h-5 w-5" />, tone: "bg-accent text-accent-foreground" },
 ];
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 2 }).format(value);
+}
 
 function DashboardPage() {
   const convos = useQuery({
@@ -65,13 +75,19 @@ function DashboardPage() {
     queryFn: () => listNotifications(),
     refetchInterval: 15000,
   });
+  const earnings = useQuery({
+    queryKey: ["earnings-summary"],
+    queryFn: () => getEarningsSummary(),
+    refetchInterval: 30000,
+  });
 
-  const awaitingCount = (convos.data ?? []).filter((c) => c.awaiting_payment).length;
   const activeCount = (convos.data ?? []).filter((c) => {
     const t = new Date(c.last_message_at ?? c.created_at).getTime();
-    return Number.isFinite(t) && Date.now() - t <= ACTIVE_NOW_THRESHOLD_MS;
+    return c.agent_enabled && Number.isFinite(t) && Date.now() - t <= ACTIVE_NOW_THRESHOLD_MS;
   }).length;
   const unread = (notifs.data ?? []).filter((n) => !n.is_read).length;
+  const orderCount = earnings.data?.orderCount ?? 0;
+  const pendingProfit = earnings.data?.pendingProfit ?? 0;
 
   return (
     <div dir="rtl" className="hub min-h-screen pb-24">
@@ -99,30 +115,54 @@ function DashboardPage() {
 
       <div className="hub-sheet-top -mt-6 pt-7">
         <div className="mx-auto w-full max-w-3xl space-y-7 px-5 pb-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/awaiting-payment" className="hub-card p-4">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-secondary-foreground">
-                <Clock4 className="h-5 w-5" />
-              </span>
-              <span className="mt-3 block text-xs text-muted-foreground">بانتظار الدفع</span>
-              <span className="block text-xl font-bold">{awaitingCount} طلب</span>
-            </Link>
-            <Link to="/missing-info" className="hub-card p-4">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
-                <MessagesSquare className="h-5 w-5" />
-              </span>
-              <span className="mt-3 block text-xs text-muted-foreground">محادثات نشطة</span>
-              <span className="block text-xl font-bold">{activeCount}</span>
-            </Link>
-          </div>
+          <section className="space-y-3">
+            <h1 className="px-1 text-lg font-bold">نظرة سريعة</h1>
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/orders" className="hub-card flex min-h-28 flex-col justify-between p-4">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+                  <ShoppingBag className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-xs text-muted-foreground">الطلبات</span>
+                  <span className="block text-2xl font-bold">{earnings.isLoading ? "—" : orderCount}</span>
+                </span>
+              </Link>
+              <Link to="/missing-info" className="hub-card flex min-h-28 flex-col justify-between p-4">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
+                  <MessagesSquare className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-xs text-muted-foreground">عملاء يتحدث معهم الوكيل</span>
+                  <span className="block text-2xl font-bold">{convos.isLoading ? "—" : activeCount}</span>
+                </span>
+              </Link>
+              <Link to="/earnings" className="hub-card col-span-2 flex items-center gap-4 p-4">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+                  <Clock4 className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs text-muted-foreground">أرباح قيد التحصيل</span>
+                  <span className="mt-0.5 block text-2xl font-bold">
+                    {earnings.isLoading ? "—" : formatMoney(pendingProfit)}
+                    {earnings.data?.currency && <small className="me-1 text-xs font-medium text-muted-foreground">{earnings.data.currency}</small>}
+                  </span>
+                  <span className="block text-[11px] text-muted-foreground">بعد خصم التكاليف المسجلة</span>
+                </span>
+                <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            </div>
+          </section>
 
           <section className="space-y-3">
             <h2 className="px-1 text-sm font-bold">إدارة المتجر</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {TILES.map((t) => (
-                <Link key={t.to} to={t.to as never} className="flex flex-col items-center gap-2">
-                  <span className={`hub-tile ${t.tone}`}>{t.icon}</span>
-                  <span className="text-xs font-semibold">{t.label}</span>
+                <Link key={t.to} to={t.to as never} className="hub-card flex min-h-20 items-center gap-3 p-3 transition-transform active:scale-[0.98]">
+                  <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${t.tone}`}>{t.icon}</span>
+                  <span className="min-w-0 text-right">
+                    <span className="block text-sm font-bold">{t.label}</span>
+                    <span className="block truncate text-[10px] text-muted-foreground">{t.description}</span>
+                  </span>
                 </Link>
               ))}
             </div>
