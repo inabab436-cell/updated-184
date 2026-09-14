@@ -78,7 +78,7 @@ export function HubBar({
         className={`mx-auto flex w-full ${maxWidth} items-center justify-between gap-3 px-4 py-3`}
       >
         <Link
-          to={backTo}
+          to={backTo as never}
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5 rotate-180" />
