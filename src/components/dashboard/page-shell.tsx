@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import logo from "@/assets/cupai-logo.png.asset.json";
+import { HubBar, HubTabBar } from "@/components/hub/hub-shell";
 
 type Props = {
   title: string;
@@ -13,44 +10,34 @@ type Props = {
   children: ReactNode;
 };
 
+/** Same shell as the orders page. Presentation only. */
 export function PageShell({ title, description, icon, actions, children }: Props) {
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-surface">
-      <header className="sticky top-0 z-10 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo.url} alt="cupai" className="h-8 w-8 rounded-lg shadow-card" />
-            <span className="text-sm font-semibold tracking-tight">cupai</span>
-          </Link>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/dashboard">
-              لوحة التحكم
-              <ChevronRight className="mr-1 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <div dir="rtl" className="hub min-h-screen pb-24">
+      <HubBar />
 
-      <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
+      <div className="mx-auto w-full max-w-3xl space-y-5 px-4 pt-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-end sm:justify-between">
+          <div className="min-w-0">
             {icon && (
-              <div className="rounded-xl bg-gradient-brand p-2.5 text-primary-foreground shadow-glow">
+              <span className="mb-2 inline-grid h-9 w-9 place-items-center rounded-full bg-accent text-accent-foreground">
                 {icon}
-              </div>
+              </span>
             )}
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-              {description && (
-                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-              )}
-            </div>
+            <h1 className="text-[26px] font-bold leading-tight sm:text-3xl">{title}</h1>
+            {description && (
+              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                {description}
+              </p>
+            )}
           </div>
-          {actions && <div className="flex gap-2">{actions}</div>}
+          {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
         </div>
 
         {children}
       </div>
+
+      <HubTabBar />
     </div>
   );
 }
