@@ -1,19 +1,16 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import logo from "@/assets/cupai-logo.png.asset.json";
+import { HubBar, HubTabBar } from "@/components/hub/hub-shell";
 
 /**
- * Shared page shell for authenticated inner pages.
- * Sticky brand header + soft brand-gradient background surface.
- * Purely presentational — no data or business logic.
+ * Shared shell for merchant pages.
+ * Presentation only — it now renders the same look as the orders page
+ * (hub surfaces, frosted top bar, bottom tab bar). No data or logic here.
  */
 export function PageShell({
   children,
   dir = "rtl",
-  maxWidth = "max-w-6xl",
+  maxWidth = "max-w-3xl",
   backTo = "/dashboard",
   backLabel = "لوحة التحكم",
 }: {
@@ -23,24 +20,11 @@ export function PageShell({
   backTo?: "/dashboard" | "/" | "/published";
   backLabel?: string;
 }) {
-  const isRtl = dir === "rtl";
   return (
-    <div dir={dir} className="min-h-screen bg-gradient-surface">
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-        <div className={`mx-auto flex w-full ${maxWidth} items-center justify-between gap-3 px-4 py-3`}>
-          <Link to="/" className="flex min-w-0 items-center gap-2">
-            <img src={logo.url} alt="cupai" className="h-8 w-8 shrink-0 rounded-lg shadow-card" />
-            <span className="truncate text-sm font-semibold tracking-tight">cupai</span>
-          </Link>
-          <Button asChild variant="ghost" size="sm">
-            <Link to={backTo}>
-              <ArrowLeft className={`${isRtl ? "ml-1" : "mr-1"} h-4 w-4`} />
-              {backLabel}
-            </Link>
-          </Button>
-        </div>
-      </header>
-      <div className={`mx-auto w-full ${maxWidth} space-y-8 px-4 py-8 sm:py-10`}>{children}</div>
+    <div dir={dir} className="hub min-h-screen pb-24">
+      <HubBar backTo={backTo} backLabel={backLabel} maxWidth={maxWidth} />
+      <div className={`mx-auto w-full ${maxWidth} space-y-5 px-4 pt-6`}>{children}</div>
+      <HubTabBar />
     </div>
   );
 }
@@ -61,20 +45,22 @@ export function PageHero({
   icon?: ReactNode;
 }) {
   return (
-    <section className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
+    <section className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:items-end sm:justify-between">
       <div className="min-w-0">
         {eyebrow && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-            {icon ? <span className="grid h-4 w-4 place-items-center text-primary">{icon}</span> : <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+            {icon && <span className="grid h-4 w-4 place-items-center">{icon}</span>}
             {eyebrow}
           </div>
         )}
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="mt-1.5 text-[26px] font-bold leading-tight sm:text-3xl">
           {title}
-          {highlight && <> <span className="text-gradient-brand">{highlight}</span></>}
+          {highlight && <> {highlight}</>}
         </h1>
         {description && (
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{description}</p>
+          <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
@@ -89,13 +75,7 @@ export function SurfaceCard({
   children: ReactNode;
   className?: string;
 }) {
-  return (
-    <section
-      className={`overflow-hidden rounded-2xl border border-border/60 bg-background/80 shadow-elegant backdrop-blur-xl ${className}`}
-    >
-      {children}
-    </section>
-  );
+  return <section className={`hub-card overflow-hidden ${className}`}>{children}</section>;
 }
 
 export function SectionHeader({
@@ -108,10 +88,10 @@ export function SectionHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-muted/30 px-5 py-3">
-      <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold sm:text-base">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+      <h2 className="flex min-w-0 items-center gap-2 text-sm font-bold">
         {icon && (
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-primary-foreground shadow-glow">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
             {icon}
           </span>
         )}

@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { HubTabBar } from "@/components/hub/hub-shell";
 import { Switch } from "@/components/ui/switch";
 import logo from "@/assets/cupai-logo.png.asset.json";
 import {
@@ -35,26 +36,48 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type NavItem = {
-  to: "/products" | "/orders" | "/policies" | "/shipping" | "/contacts" | "/published" | "/earnings";
+  to: string;
   badgeKey?: "awaiting_payment";
   title: string;
   desc: string;
   icon: React.ReactNode;
 };
 
-const NAV: NavItem[] = [
-  { to: "/published", title: "إدارة الموقع", desc: "كل ما يُرفع هنا يُنشر مباشرة على موقعك.", icon: <Globe className="h-5 w-5" /> },
-  { to: "/products", title: "المخزون", desc: "منتجاتك، الألوان، المقاسات، والكميات. أضف منتج جديد يدوياً أو استعرض المخزون الحالي.", icon: <Package className="h-5 w-5" /> },
-  { to: "/offers" as any, title: "العروض والخصومات", desc: "عروض على منتج محدد أو على كل المنتجات، بمدة زمنية حقيقية ورسالة تلقائية اختيارية للعملاء.", icon: <BadgePercent className="h-5 w-5" /> },
-  { to: "/orders", title: "الطلبات", desc: "متابعة الطلبات وتحديث حالة الشحن والتسليم.", icon: <ShoppingBag className="h-5 w-5" /> },
-  { to: "/earnings", title: "الأرباح", desc: "نظرة مالية سريعة على أداء متجرك.", icon: <TrendingUp className="h-5 w-5" /> },
-  { to: "/policies", title: "السياسات", desc: "الشحن، الإرجاع، الشروط، والخصوصية.", icon: <ScrollText className="h-5 w-5" /> },
-  { to: "/shipping", title: "جدول الشحن", desc: "أسعار الشحن حسب الدولة والمنطقة.", icon: <Truck className="h-5 w-5" /> },
-  { to: "/contacts", title: "معلومات التواصل", desc: "الهاتف، البريد، والعناوين ووسائل التواصل.", icon: <PhoneCall className="h-5 w-5" /> },
-  { to: "/missing-info" as any, title: "المعلومات الناقصة", desc: "كل معلومة لم يجدها الوكيل: من سأل عنها، وما تمت إضافته، والعملاء الذين رجع إليهم بالرد.", icon: <HelpCircle className="h-5 w-5" /> },
-  { to: "/settings/notifications" as any, title: "إعدادات الإشعارات", desc: "تحكم في إشعارات البريد الإلكتروني التي تصل إلى حسابك.", icon: <Bell className="h-5 w-5" /> },
-  { to: "/awaiting-payment" as any, title: "بانتظار استكمال الدفع", desc: "العملاء الذين اختاروا طريقة دفع يدوية والوكيل نائم في محادثاتهم حتى تؤكد الدفع.", icon: <Moon className="h-5 w-5" />, badgeKey: "awaiting_payment" },
-  { to: "/settings/payment-methods" as any, title: "طرق الدفع", desc: "اختر خيارات الدفع التي تقبلها وحدّد سلوك الوكيل الذكي مع كل طريقة.", icon: <CreditCard className="h-5 w-5" /> },
+type NavGroup = { label: string; items: NavItem[] };
+
+const GROUPS: NavGroup[] = [
+  {
+    label: "المتجر",
+    items: [
+      { to: "/published", title: "الموقع", desc: "ما يراه العميل على موقعك.", icon: <Globe className="h-5 w-5" /> },
+      { to: "/products", title: "المخزون", desc: "المنتجات والمقاسات والكميات.", icon: <Package className="h-5 w-5" /> },
+      { to: "/offers", title: "العروض", desc: "خصومات بمدة محددة.", icon: <BadgePercent className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: "المبيعات",
+    items: [
+      { to: "/orders", title: "الطلبات", desc: "متابعة الشحن والتسليم.", icon: <ShoppingBag className="h-5 w-5" /> },
+      { to: "/earnings", title: "الأرباح", desc: "أداء متجرك بالأرقام.", icon: <TrendingUp className="h-5 w-5" /> },
+      { to: "/awaiting-payment", title: "بانتظار الدفع", desc: "طلبات تنتظر تأكيدك.", icon: <Moon className="h-5 w-5" />, badgeKey: "awaiting_payment" },
+      { to: "/settings/payment-methods", title: "طرق الدفع", desc: "الخيارات التي تقبلها.", icon: <CreditCard className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: "بيانات المتجر",
+    items: [
+      { to: "/policies", title: "السياسات", desc: "الإرجاع والشروط والخصوصية.", icon: <ScrollText className="h-5 w-5" /> },
+      { to: "/shipping", title: "الشحن", desc: "الأسعار حسب المنطقة.", icon: <Truck className="h-5 w-5" /> },
+      { to: "/contacts", title: "التواصل", desc: "الهاتف والبريد والعناوين.", icon: <PhoneCall className="h-5 w-5" /> },
+    ],
+  },
+  {
+    label: "الوكيل الذكي",
+    items: [
+      { to: "/missing-info", title: "معلومات ناقصة", desc: "أسئلة لم يجد لها إجابة.", icon: <HelpCircle className="h-5 w-5" /> },
+      { to: "/settings/notifications", title: "الإشعارات", desc: "رسائل البريد التي تصلك.", icon: <Bell className="h-5 w-5" /> },
+    ],
+  },
 ];
 
 function DashboardPage() {
@@ -66,80 +89,74 @@ function DashboardPage() {
   const awaitingCount = (convos.data ?? []).filter((c) => c.awaiting_payment).length;
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-surface">
-      {/* Top bar */}
-      <header className="sticky top-0 z-10 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo.url} alt="cupai" className="h-8 w-8 rounded-lg shadow-card" />
-            <span className="text-sm font-semibold tracking-tight">cupai</span>
+    <div dir="rtl" className="hub min-h-screen pb-24">
+      <header className="hub-bar">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img src={logo.url} alt="cupai" className="h-8 w-8 shrink-0 rounded-xl" />
+            <span className="hub-display truncate text-sm font-bold text-primary">cupai</span>
           </Link>
           <Button asChild variant="ghost" size="sm">
             <Link to="/">
               <ArrowLeft className="ml-1 h-4 w-4" />
-              الصفحة الرئيسية
+              الرئيسية
             </Link>
           </Button>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl space-y-10 px-4 py-10">
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pt-6">
         <section>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
             لوحة التحكم
           </div>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            أهلاً بك — إليك <span className="text-gradient-brand">نظرة كاملة</span> على متجرك
+          <h1 className="mt-1.5 text-[26px] font-bold leading-tight sm:text-3xl">
+            أهلاً بك في متجرك
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            أدر متجرك بالكامل من هنا. كل قسم مستقل وقابل للتعديل في أي وقت.
+          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+            كل شيء من مكان واحد.
           </p>
         </section>
 
-        <section>
-          <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              الأقسام
-            </h2>
-            <span className="text-xs text-muted-foreground">{NAV.length} أقسام</span>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {NAV.map((n) => (
-              <Link
-                key={n.to}
-                to={n.to}
-                className="group relative overflow-hidden rounded-2xl border border-border/60 bg-background/80 p-5 shadow-card backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant"
-              >
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-brand opacity-0 transition-opacity group-hover:opacity-100" />
-                <div className="flex items-start gap-3">
-                  <div className="rounded-xl bg-gradient-brand p-2.5 text-primary-foreground shadow-glow">
+        {GROUPS.map((g) => (
+          <section key={g.label} className="space-y-2.5">
+            <h2 className="px-1 text-[12px] font-bold text-muted-foreground">{g.label}</h2>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {g.items.map((n) => (
+                <Link
+                  key={n.to}
+                  to={n.to as never}
+                  className="hub-card flex items-center gap-3 p-4 transition-colors active:bg-accent"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
                     {n.icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
-                      {n.title}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2 text-[15px] font-bold">
+                      <span className="truncate">{n.title}</span>
                       {n.badgeKey === "awaiting_payment" && awaitingCount > 0 && (
-                        <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                        <span className="hub-chip bg-secondary text-secondary-foreground">
                           {awaitingCount}
                         </span>
                       )}
-                    </div>
-                    <div className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    </span>
+                    <span className="mt-0.5 block truncate text-[12px] text-muted-foreground">
                       {n.desc}
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+                    </span>
+                  </span>
+                  <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
 
         <BrandAgentSettings />
         <ConversationsSection />
         <NotificationsSection />
-
       </div>
+
+      <HubTabBar />
     </div>
   );
 }

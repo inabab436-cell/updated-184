@@ -1,51 +1,58 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ClipboardList, LayoutGrid, TrendingUp } from "lucide-react";
+import {
+  ChevronLeft,
+  ClipboardList,
+  LayoutGrid,
+  Package,
+  TrendingUp,
+} from "lucide-react";
 
 /**
- * Presentation shell for the redesigned merchant hub (orders / earnings).
- * Everything is scoped under `.hub` so the rest of the site keeps its own look.
+ * Presentation shell for the merchant hub. This is now the single look used by
+ * every merchant page (orders, earnings, products, settings, …).
+ * Everything is scoped under `.hub`, so the customer chat and storefront keep
+ * their own look untouched.
  */
 export function HubShell({
   eyebrow,
   title,
   subtitle,
   aside,
+  backTo = "/dashboard",
+  backLabel = "لوحة التحكم",
+  maxWidth = "max-w-3xl",
+  dir = "rtl",
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: ReactNode;
   subtitle?: string;
   aside?: ReactNode;
+  backTo?: string;
+  backLabel?: string;
+  maxWidth?: string;
+  dir?: "rtl" | "ltr";
   children: ReactNode;
 }) {
   return (
-    <div dir="rtl" className="hub min-h-screen pb-24">
-      <header className="hub-bar">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground"
-          >
-            <ChevronLeft className="h-3.5 w-3.5 rotate-180" />
-            لوحة التحكم
-          </Link>
-          <span className="hub-display text-sm font-bold text-primary">cupai</span>
-        </div>
-      </header>
+    <div dir={dir} className="hub min-h-screen pb-24">
+      <HubBar backTo={backTo} backLabel={backLabel} maxWidth={maxWidth} />
 
-      <div className="mx-auto w-full max-w-3xl space-y-5 px-4 pt-6">
+      <div className={`mx-auto w-full ${maxWidth} space-y-5 px-4 pt-6`}>
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-              {eyebrow}
-            </div>
+            {eyebrow && (
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                {eyebrow}
+              </div>
+            )}
             <h1 className="mt-1.5 text-[26px] font-bold leading-tight sm:text-3xl">{title}</h1>
             {subtitle && (
               <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{subtitle}</p>
             )}
           </div>
-          {aside}
+          {aside && <div className="flex shrink-0 flex-wrap items-center gap-2">{aside}</div>}
         </div>
 
         {children}
@@ -56,16 +63,44 @@ export function HubShell({
   );
 }
 
+export function HubBar({
+  backTo = "/dashboard",
+  backLabel = "لوحة التحكم",
+  maxWidth = "max-w-3xl",
+}: {
+  backTo?: string;
+  backLabel?: string;
+  maxWidth?: string;
+}) {
+  return (
+    <header className="hub-bar">
+      <div
+        className={`mx-auto flex w-full ${maxWidth} items-center justify-between gap-3 px-4 py-3`}
+      >
+        <Link
+          to={backTo as never}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground"
+        >
+          <ChevronLeft className="h-3.5 w-3.5 rotate-180" />
+          {backLabel}
+        </Link>
+        <span className="hub-display text-sm font-bold text-primary">cupai</span>
+      </div>
+    </header>
+  );
+}
+
 const TABS = [
   { to: "/dashboard" as const, label: "الرئيسية", Icon: LayoutGrid },
   { to: "/orders" as const, label: "الطلبات", Icon: ClipboardList },
+  { to: "/products" as const, label: "المخزون", Icon: Package },
   { to: "/earnings" as const, label: "الأرباح", Icon: TrendingUp },
 ];
 
-function HubTabBar() {
+export function HubTabBar() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto grid max-w-md grid-cols-3">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+      <div className="mx-auto grid max-w-md grid-cols-4">
         {TABS.map(({ to, label, Icon }) => (
           <Link
             key={to}

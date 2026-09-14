@@ -111,7 +111,7 @@ function ConversationPage() {
 
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-surface flex flex-col">
+    <div dir="rtl" className="hub min-h-screen flex flex-col">
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3 min-w-0">

@@ -239,7 +239,7 @@ function PaymentMethodsPage() {
   const methods = q.data ?? [];
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-surface">
+    <div dir="rtl" className="hub min-h-screen">
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">

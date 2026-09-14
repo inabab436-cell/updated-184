@@ -79,7 +79,7 @@ function AwaitingPaymentPage() {
   const rows = (q.data ?? []).filter((c) => c.awaiting_payment);
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-surface">
+    <div dir="rtl" className="hub min-h-screen">
       <header className="sticky top-0 z-10 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2 text-sm font-semibold">

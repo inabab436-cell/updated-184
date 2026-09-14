@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Globe, Upload, ImageIcon, Palette } from "lucide-react";
+import { Globe, Upload, ImageIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ export function IdentitySection({ state }: { state: SiteState | undefined }) {
   const [name, setName] = useState(state?.brand_name ?? "");
   const [description, setDescription] = useState(state?.description ?? "");
   const [logoUrl, setLogoUrl] = useState(state?.logo_url ?? "");
-  const [themeKey, setThemeKey] = useState(state?.theme_key ?? "espresso");
+  const [, setThemeKey] = useState(state?.theme_key ?? "espresso");
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -146,30 +146,6 @@ export function IdentitySection({ state }: { state: SiteState | undefined }) {
             />
           </div>
 
-          <div>
-            <Label className="flex items-center gap-1.5">
-              <Palette className="h-3.5 w-3.5" /> Store color palette
-            </Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Object.entries(THEMES).map(([key, t]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => { setThemeKey(key); commit({ theme_key: key }); }}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition ${
-                    themeKey === key ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/50"
-                  }`}
-                >
-                  <span className="flex gap-1">
-                    <span className="h-4 w-4 rounded-full" style={{ background: t.primary }} />
-                    <span className="h-4 w-4 rounded-full" style={{ background: t.secondary }} />
-                    <span className="h-4 w-4 rounded-full" style={{ background: t.accent }} />
-                  </span>
-                  {t.name}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>
