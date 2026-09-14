@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Globe, Upload, ImageIcon, Palette } from "lucide-react";
+import { Globe, Upload, ImageIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ export function IdentitySection({ state }: { state: SiteState | undefined }) {
   const [name, setName] = useState(state?.brand_name ?? "");
   const [description, setDescription] = useState(state?.description ?? "");
   const [logoUrl, setLogoUrl] = useState(state?.logo_url ?? "");
-  const [themeKey, setThemeKey] = useState(state?.theme_key ?? "espresso");
+  const [, setThemeKey] = useState(state?.theme_key ?? "espresso");
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
