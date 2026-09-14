@@ -276,7 +276,7 @@ function OrdersPage() {
         </p>
       </HubCard>
 
-      <StatusMessagesEditor />
+      <div id="messages" className="scroll-mt-20"><StatusMessagesEditor /></div>
     </HubShell>
   );
 }

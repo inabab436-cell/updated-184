@@ -26,6 +26,71 @@ export interface ManualProductInput {
   variants?: ManualVariantInput[];
 }
 
+export interface AddStockInput {
+  productId: string;
+  color?: string | null;
+  size?: string | null;
+  amount: number;
+}
+
+/** Add stock to one exact variant without opening the full product editor. */
+export const addVariantStock = createServerFn({ method: "POST" })
+  .inputValidator((value: AddStockInput) => {
+    const amount = Math.floor(Number(value.amount));
+    if (!value.productId) throw new Error("المنتج مطلوب.");
+    if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
+      throw new Error("أدخل كمية صحيحة أكبر من صفر.");
+    }
+    return {
+      productId: String(value.productId),
+      color: value.color ? String(value.color).trim() : null,
+      size: value.size ? String(value.size).trim() : null,
+      amount,
+    };
+  })
+  .handler(async ({ data }): Promise<{ quantity: number }> => {
+    const { requireUserId } = await import("@/lib/session-guard.server");
+    const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { userId } = await requireUserId();
+    const admin = getSupabaseAdmin();
+
+    const { data: product } = await admin
+      .from("products")
+      .select("id")
+      .eq("id", data.productId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!product) throw new Error("المنتج غير موجود.");
+
+    let query = admin
+      .from("product_variants")
+      .select("id, stock")
+      .eq("product_id", data.productId);
+    query = data.color == null ? query.is("color", null) : query.eq("color", data.color);
+    query = data.size == null ? query.is("size", null) : query.eq("size", data.size);
+    const { data: current, error: readError } = await query.maybeSingle();
+    if (readError) throw new Error(readError.message);
+
+    const quantity = Math.max(0, Number((current as any)?.stock ?? 0)) + data.amount;
+    if (current) {
+      const { error } = await admin
+        .from("product_variants")
+        .update({ stock: quantity })
+        .eq("id", (current as any).id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await admin.from("product_variants").insert({
+        product_id: data.productId,
+        color: data.color,
+        size: data.size,
+        stock: quantity,
+        position: 0,
+      });
+      if (error) throw new Error(error.message);
+    }
+    return { quantity };
+  });
+
 
 export const createManualProduct = createServerFn({ method: "POST" })
   .inputValidator((v: ManualProductInput) => v)

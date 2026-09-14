@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Package, Clock, ArrowUpRight } from "lucide-react";
+import { TrendingUp, Package, Clock, CircleCheck } from "lucide-react";
 
 import { HubShell, HubCard } from "@/components/hub/hub-shell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,9 +41,9 @@ function EarningsPage() {
 
   return (
     <HubShell
-      eyebrow="نظرة مالية"
-      title={<>أرباح متجرك</>}
-      subtitle="ثلاثة مؤشرات تكفي لتعرف موقفك المالي في ثوانٍ."
+      eyebrow="الأرباح"
+      title={<>ملخص الأرباح</>}
+      subtitle="المبالغ المحصلة والقيد التحصيل بعد خصم تكلفة الشحن المسجلة."
     >
       {q.isLoading ? (
         <LoadingMetrics />
@@ -68,88 +68,50 @@ function EarningsPage() {
           </p>
         </HubCard>
       ) : (
-        <div className="space-y-4">
-          {/* Hero: total profit */}
-          <div className="relative overflow-hidden rounded-[var(--radius)] bg-gradient-brand p-6 text-primary-foreground shadow-glow sm:p-8">
-            <div className="pointer-events-none absolute -end-16 -top-16 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
-            <div className="relative">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white/75">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </span>
-                إجمالي الأرباح
-              </div>
-              <div className="mt-4 flex flex-wrap items-baseline gap-2">
-                <span className="hub-display text-[44px] font-bold leading-none sm:text-6xl">
-                  {fmtMoney(data.totalProfit)}
-                </span>
-                {data.currency && (
-                  <span className="text-base font-medium text-white/75">{data.currency}</span>
-                )}
-              </div>
-              <p className="mt-3 text-[12px] leading-relaxed text-white/70">
-                صافي الأرباح بعد خصم تكاليف الشحن.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <MiniCard
-              icon={<Package className="h-5 w-5" />}
-              label="عدد الأوردرات"
-              value={String(data.orderCount)}
-              subtext="إجمالي الطلبات النشطة"
-              tone="green"
-            />
-            <MiniCard
-              icon={<Clock className="h-5 w-5" />}
-              label="أرباح تحت التحصيل"
-              value={fmtMoney(data.pendingProfit)}
-              currency={data.currency}
-              subtext="أوردرات لم تُسلّم أو تُحصّل بعد"
-              tone="amber"
-            />
-          </div>
+        <div className="space-y-3">
+          <MetricRow icon={<CircleCheck className="h-5 w-5" />} label="أرباح تم تحصيلها" value={fmtMoney(data.totalProfit)} currency={data.currency} detail="من الطلبات المسلمة والمدفوعة" tone="mint" />
+          <MetricRow icon={<Clock className="h-5 w-5" />} label="أرباح قيد التحصيل" value={fmtMoney(data.pendingProfit)} currency={data.currency} detail="بعد خصم تكلفة الشحن المسجلة" tone="gold" />
+          <MetricRow icon={<Package className="h-5 w-5" />} label="عدد الطلبات" value={String(data.orderCount)} detail="كل الطلبات غير الملغاة" tone="sky" />
+          <HubCard className="p-4 text-[12px] leading-relaxed text-muted-foreground">
+            الأرباح هنا هي قيمة الطلب بعد خصم تكلفة الشحن المسجلة. لا توجد تكلفة شراء للمنتج مسجلة حالياً ليتم خصمها.
+          </HubCard>
         </div>
       )}
     </HubShell>
   );
 }
 
-function MiniCard({
+function MetricRow({
   icon,
   label,
   value,
   currency,
-  subtext,
+  detail,
   tone,
 }: {
   icon: ReactNode;
   label: string;
   value: string;
   currency?: string;
-  subtext: string;
-  tone: "green" | "amber";
+  detail: string;
+  tone: "mint" | "gold" | "sky";
 }) {
-  const amber = tone === "amber";
+  const tones = {
+    mint: "bg-hub-mint-soft text-hub-mint",
+    gold: "bg-hub-gold-soft text-hub-gold",
+    sky: "bg-hub-sky-soft text-hub-sky",
+  };
   return (
-    <HubCard className="p-5">
-      <div className="flex items-start justify-between">
-        <div
-          className={`grid h-11 w-11 place-items-center rounded-2xl ${
-            amber ? "bg-amber-500/10 text-amber-600" : "bg-accent text-accent-foreground"
-          }`}
-        >
-          {icon}
-        </div>
-        <ArrowUpRight className="h-4 w-4 text-muted-foreground/50" />
-      </div>
-      <div className="mt-4 text-xs font-semibold text-muted-foreground">{label}</div>
-      <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="hub-display text-3xl font-bold leading-none">{value}</span>
-        {currency && <span className="text-sm text-muted-foreground">{currency}</span>}
-      </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">{subtext}</p>
+    <HubCard className="flex items-center gap-4 p-4">
+      <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${tones[tone]}`}>{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-semibold text-muted-foreground">{label}</span>
+        <span className="mt-1 flex items-baseline gap-1.5">
+          <strong className="hub-display text-2xl leading-none">{value}</strong>
+          {currency && <span className="text-xs text-muted-foreground">{currency}</span>}
+        </span>
+        <span className="mt-1 block text-[11px] text-muted-foreground">{detail}</span>
+      </span>
     </HubCard>
   );
 }
