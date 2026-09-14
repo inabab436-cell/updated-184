@@ -51,7 +51,7 @@ function EarningsPage() {
         <HubCard className="p-8 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-destructive/10 text-destructive">
             <TrendingUp className="h-6 w-6" />
-          </HubCard>
+          </div>
           <h2 className="mt-4 text-lg font-bold">تعذر تحميل البيانات</h2>
           <p className="mx-auto mt-1 max-w-sm text-[13px] text-muted-foreground">
             {(q.error as Error)?.message || "حدث خطأ أثناء جلب نظرتك المالية."}
@@ -74,7 +74,7 @@ function EarningsPage() {
           <MetricRow icon={<Package className="h-5 w-5" />} label="عدد الطلبات" value={String(data.orderCount)} detail="كل الطلبات غير الملغاة" tone="sky" />
           <HubCard className="p-4 text-[12px] leading-relaxed text-muted-foreground">
             الأرباح هنا هي قيمة الطلب بعد خصم تكلفة الشحن المسجلة. لا توجد تكلفة شراء للمنتج مسجلة حالياً ليتم خصمها.
-          </div>
+          </HubCard>
         </div>
       )}
     </HubShell>
